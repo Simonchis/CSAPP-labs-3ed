@@ -143,8 +143,7 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  int res = ~((~(x&(~y)))&(~((~x)&y)));
-  return res;
+  return ~((~(x&(~y)))&(~((~x)&y)));//Using De Morgan's Law(s)
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -153,8 +152,8 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-
-  return 2;
+  //the min two's-comlpement int number is 1000-0000-....-0000
+  return 1<<31;
 
 }
 //2
@@ -166,7 +165,9 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  //Tmax = 0x7FFFFFFF, it satisfies th equation (2Tmax+2=0),
+  //but you must exclude the posibility of x=-1 (-1 = 0xFFFFFFFF, ~(-1)=0)
+  return (!(x+1+x+1))&(!!(~x));
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -177,7 +178,11 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  //only if its all odd-number bits are 1, the number can be turned into 0xFFFFFFFF by Or 0x55555555
+  //0x55555555 = 0101-0101-...-0101, you can get it by add 0x55
+  int a = 0x55;
+  int b = a+(a<<8)+(a<<16)+(a<<24);//b=0x55555555
+  return !(~(x|b));
 }
 /* 
  * negate - return -x 
@@ -187,7 +192,9 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  //x's two's complement can be got by (~x)+1
+  //so you can get -x by follow the converse steps
+  return ~(x-1);
 }
 //3
 /* 
