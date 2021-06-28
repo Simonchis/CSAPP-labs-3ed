@@ -193,7 +193,7 @@ int allOddBits(int x) {
  */
 int negate(int x) {
   //x's two's complement can be got by (~x)+1
-  //so you can get -x by follow the converse steps
+  //so you can get -x by following the converse steps
   return ~(x-1);
 }
 //3
@@ -217,7 +217,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  //first, let t = !x, then res = ((!t)&&y)||(t&&z)
+  //if t=0, !t&&y can be replaced by y&0xFFFFFFFF; if t=1, y&0x0; thus using y&(t-1)
+  //for the same reason, using z&~(t-1)
+  return (y&((!x)-1))|(z&(~((!x)-1)));
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
