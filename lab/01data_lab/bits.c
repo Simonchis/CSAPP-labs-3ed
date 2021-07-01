@@ -193,8 +193,7 @@ int allOddBits(int x) {
  */
 int negate(int x) {
   //x's two's complement can be got by (~x)+1
-  //so you can get -x by following the converse steps
-  return ~(x-1);
+  return (-x)+1;
 }
 //3
 /* 
@@ -207,7 +206,9 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  //if x is ASCII digit, then x-'0'>=0 and x-('9'+1)< 0
+  //judge the highest bit
+  return !(((x+~48+1)>>31)|(!((x+~58+1)>>31)));
 }
 /* 
  * conditional - same as x ? y : z 
@@ -230,7 +231,8 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  // y-x = y+(~x+1),if x<=y, the highest bit will be 0;
+  return !((y+~x+1)>>31);
 }
 //4
 /* 
@@ -242,7 +244,11 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  //let y = ~x+1;
+  //if x=0, then the highest bits of y and x will be 0; if x=Tmin, then tey will be 1
+  //else they will be different
+  int y = ~x+1;
+  return (((~x)&(~y))>>31)&1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
