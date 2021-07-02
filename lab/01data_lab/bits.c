@@ -231,8 +231,13 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  // y-x = y+(~x+1),if x<=y, the highest bit will be 0;
-  return !((y+~x+1)>>31);
+  // if x and y have the same sign, you can use the sign of y-x to judge;
+  // else if x>=0 then return 0, if x<0 return 1
+  int a = x>>31;
+  int b = y>>31;
+  int c = a + b;//if x and y have the same sign, then c = 0, else c = 0xffffffff;
+  int p = ((y+~x+1)>>31);
+  return ((~c&~p)|(c&a))&1;
 }
 //4
 /* 
@@ -248,7 +253,7 @@ int logicalNeg(int x) {
   //if x=0, then the highest bits of y and x will be 0; if x=Tmin, then tey will be 1
   //else they will be different
   int y = ~x+1;
-  return (((~x)&(~y))>>31)&1;
+  return (((~x)&(~y))>>31)&1;// The right shift of complement is arithmetic right shift 
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
