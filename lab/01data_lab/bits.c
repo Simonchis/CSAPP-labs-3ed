@@ -193,7 +193,7 @@ int allOddBits(int x) {
  */
 int negate(int x) {
   //x's two's complement can be got by (~x)+1
-  return (-x)+1;
+  return (~x)+1;
 }
 //3
 /* 
@@ -208,7 +208,12 @@ int negate(int x) {
 int isAsciiDigit(int x) {
   //if x is ASCII digit, then x-'0'>=0 and x-('9'+1)< 0
   //judge the highest bit
-  return !(((x+~48+1)>>31)|(!((x+~58+1)>>31)));
+  int sign = 0x1<<31;
+  int upperBound = ~(sign|0x39);
+  int lowerBound = ~0x30;
+  upperBound = sign&(upperBound+x)>>31;
+  lowerBound = sign&(lowerBound+1+x)>>31;
+  return !(upperBound|lowerBound);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -221,7 +226,9 @@ int conditional(int x, int y, int z) {
   //first, let t = !x, then res = ((!t)&&y)||(t&&z)
   //if t=0, !t&&y can be replaced by y&0xFFFFFFFF; if t=1, y&0x0; thus using y&(t-1)
   //for the same reason, using z&~(t-1)
-  return (y&((!x)-1))|(z&(~((!x)-1)));
+  x = !!x;
+  x = ~x+1;
+  return (x&y)|(~x&z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -268,7 +275,43 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+
+  int shift1, shift2, shift4, shift8, shift16;
+  int sum;
+
+  int t1=((!x)<<31)>>31;//if x=0, all bits of t1 are 1, else all 0;
+
+  int t2=((!~x)<<31)>>31;//if x=-1, all bits of t2 are 1, else all 0;
+
+  int op=x^((x>>31));//if x is negative, then negate x， else do nothing
+
+  //printf("op=%x  !!(op>>16)=%x\n",op,!!(op>>16));
+
+  shift16 = (!!(op>>16))<<4;//if all the upper 16 bits of op are 0, then shift16 = 0, else shift16 = 16;
+
+  op = op>>shift16;//if the upper 16 bits of op have values, then right-shift 16 bits, else do nothing
+
+  shift8 = (!!(op>>8))<<3;
+
+  op = op>>shift8;
+
+  shift4 = (!!(op>>4))<<2;
+
+  op = op>>shift4;
+
+  shift2 = (!!(op>>2))<<1;
+
+  op = op>>shift2;
+
+  shift1 = (!!(op>>1));
+
+  op = op>>shift1;
+
+  //printf("shift16=%x shift8=%x shift4=%x shift2=%x shift1=%x\n",shift16,shift8,shift4,shift2,shift1);
+
+  sum = 2+shift16+shift8+shift4+shift2+shift1;
+
+  return(t2&1)|((~t2)&((t1&1)|((~t1)&sum)));
 }
 //float
 /* 
@@ -283,7 +326,13 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  int exp = (uf&0x7f800000)>>23;
+  int sign = uf&(1<<31);
+  if(exp==0) return uf<<1|sign;
+  if(exp==255) return uf;
+  exp++;
+  if(exp==255) return 0x7f800000|sign;
+  return (exp<<23)|(uf&0x807fffff);
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -298,7 +347,20 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  int s_    = uf>>31;
+  int exp_  = ((uf&0x7f800000)>>23)-127;
+  int frac_ = (uf&0x007fffff)|0x00800000;
+  if(!(uf&0x7fffffff)) return 0;
+
+  if(exp_ > 31) return 0x80000000;
+  if(exp_ < 0) return 0;
+
+  if(exp_ > 23) frac_ <<= (exp_-23);
+  else frac_ >>= (23-exp_);
+
+  if(!((frac_>>31)^s_)) return frac_;
+  else if(frac_>>31) return 0x80000000;
+  else return ~frac_+1;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -314,5 +376,9 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  int INF = 0xff<<23;
+  int exp = x + 127;
+  if(exp <= 0) return 0;
+  if(exp >= 255) return INF;
+  return exp << 23;
 }
